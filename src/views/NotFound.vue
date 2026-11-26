@@ -1,0 +1,1 @@
+<template><section class="panel empty"><h1>404</h1><p>没有找到这个页面</p><RouterLink to="/" class="primary">返回工作台</RouterLink></section></template>

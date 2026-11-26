@@ -1,0 +1,18 @@
+<script setup lang="ts">
+import {ref,watch,computed} from 'vue'
+import {cropApi} from '../api/crop'
+import {useFarm} from '../stores/farm'
+import type {Ridge} from '../../shared/contracts'
+import type {AnomalyDetail,TreatmentInput} from '../../shared/monitoring'
+import CollectionPhoto from './CollectionPhoto.vue'
+const props=defineProps<{ridge:Ridge}>(),farm=useFarm()
+const detail=ref<AnomalyDetail|null>(null),loading=ref(false),saving=ref(false),error=ref(''),message=ref('')
+const description=ref(''),action=ref(''),status=ref<TreatmentInput['status']>('处理中')
+const scope=computed(()=>[farm.farmId,farm.fieldId,props.ridge.id,props.ridge.batch,props.ridge.plantedAt,props.ridge.sampledAt].join('|'))
+let revision=0
+async function load(){const v=++revision;loading.value=true;detail.value=null;error.value='';try{const data=await cropApi.anomalies(props.ridge.id);if(v===revision){detail.value=data;description.value=data.description}}catch(e){if(v===revision)error.value=(e as Error).message}finally{if(v===revision)loading.value=false}}
+watch(scope,()=>{message.value='';action.value='';status.value='处理中';void load()},{immediate:true})
+async function save(){if(!detail.value||saving.value)return;const context=scope.value;saving.value=true;message.value='';error.value='';try{await cropApi.treatment(props.ridge.id,{batch:detail.value.batch,plantedAt:detail.value.plantedAt,sampledAt:detail.value.sampledAt,description:description.value,action:action.value,status:status.value});if(scope.value===context){action.value='';await load();message.value='处理记录已保存'}}catch(e){if(scope.value===context)error.value=(e as Error).message}finally{saving.value=false}}
+const time=(v:string)=>v?new Date(v).toLocaleString('zh-CN'):'待首次检测'
+</script>
+<template><section class="anomaly-detail"><h3>异常描述与处理</h3><p v-if="loading" role="status">正在加载本垄异常记录…</p><p v-if="error" class="error-banner" role="alert">{{error}} <button v-if="!saving" @click="load">重新加载</button></p><template v-if="detail&&!loading"><p class="muted">{{ridge.number}}号垄 · {{detail.batch}} · 检测于 {{time(detail.sampledAt)}}</p><p class="anomaly-description">{{detail.description}}</p><div class="rule-reminders"><span v-for="issue in detail.issues" :key="issue" class="badge warning">{{issue}}</span></div><h4>本次检测照片</h4><CollectionPhoto v-for="photo in detail.photos" :key="photo.id" :photo="photo"/><p v-if="!detail.photos.length" class="muted">本次检测暂无关联照片</p><form v-if="ridge.active" @submit.prevent="save"><fieldset :disabled="saving"><label>异常性状描述<textarea v-model="description" maxlength="1000" required placeholder="描述位置、叶片或果实的异常性状"/></label><label>处理内容<textarea v-model="action" maxlength="1000" required placeholder="记录已采取的措施、观察结果或复查安排"/></label><label>处理状态<select v-model="status"><option>处理中</option><option>待复查</option><option>已完成</option></select></label><button class="primary" type="submit">{{saving?'正在保存…':'保存处理记录'}}</button></fieldset></form><p v-if="message" class="success" role="status">{{message}}</p><p class="trend-caption">处理状态由人工记录；检测异常在后续巡检确认后更新。每条记录保留当次描述、照片和批次，历史记录不会被覆盖。</p><h4>处理历史（{{detail.records.length}}）</h4><p v-if="!detail.records.length" class="muted">暂无处理记录</p><article v-for="record in detail.records" :key="record.id" class="treatment-record"><div class="panel-title"><b>{{record.status}}</b><small>{{time(record.createdAt)}}</small></div><p class="muted">批次 {{record.batch}} · 种植于 {{record.plantedAt}}</p><p><b>异常：</b>{{record.description}}</p><p><b>处理：</b>{{record.action}}</p><details><summary>查看当时照片与检测时间</summary><p class="muted">{{time(record.sampledAt)}}</p><CollectionPhoto v-for="photo in record.photos" :key="photo.id" :photo="photo"/><p v-if="!record.photos.length" class="muted">该记录未关联照片</p></details></article></template></section></template>

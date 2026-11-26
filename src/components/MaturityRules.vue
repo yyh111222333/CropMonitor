@@ -1,0 +1,17 @@
+<script setup lang="ts">
+import {ref,computed,watch} from 'vue'
+import type {Crop} from '../../shared/contracts'
+import {defaultMaturityProfile,indicatorInfo,validateMaturityProfile,type MaturityProfile} from '../../shared/monitoring'
+import {cropApi} from '../api/crop'
+import {useFarm} from '../stores/farm'
+const props=defineProps<{crop:Crop}>(),farm=useFarm()
+const editing=ref(false),saving=ref(false),error=ref(''),message=ref(''),draft=ref<MaturityProfile>(defaultMaturityProfile(props.crop.id))
+const profile=computed(()=>props.crop.maturityProfile??defaultMaturityProfile(props.crop.id))
+const active=computed(()=>profile.value.criteria.filter(c=>c.enabled))
+const total=computed(()=>active.value.reduce((n,c)=>n+c.weight,0))
+function edit(){draft.value=structuredClone(JSON.parse(JSON.stringify(profile.value)));editing.value=true;message.value='';error.value=''}
+function changeKind(){draft.value=defaultMaturityProfile(props.crop.id,draft.value.kind)}
+watch(()=>props.crop.id,()=>{editing.value=false;error.value='';message.value=''})
+async function save(){error.value=validateMaturityProfile(draft.value)??'';if(error.value)return;saving.value=true;try{await cropApi.saveMaturity(props.crop.id,draft.value);editing.value=false;await farm.refresh();message.value='成熟指标已保存，工作台和田垄评价已更新'}catch(e){error.value=(e as Error).message}finally{saving.value=false}}
+</script>
+<template><section class="maturity-config"><div class="panel-title"><h3>成熟标志与评价规则</h3><button v-if="!editing" class="secondary" @click="edit">配置指标</button></div><p class="muted">{{profile.kind==='fruit'?'果菜类':'叶菜类'}} · 综合参考 ≥ {{profile.readyScore}} 分</p><p>{{profile.colorDescription}}</p><dl v-if="!editing"><div v-for="c in active" :key="c.key"><dt>{{indicatorInfo[c.key].label}}</dt><dd>{{c.target}} {{indicatorInfo[c.key].unit}} · 权重 {{Math.round(c.weight/total*100)}}%</dd></div></dl><form v-else @submit.prevent="save"><fieldset :disabled="saving"><label>作物类型<select v-model="draft.kind" @change="changeKind"><option value="fruit">果菜类（以果实为采收对象）</option><option value="leafy">叶菜类（以叶片或植株为采收对象）</option></select></label><label>采收目标色泽<textarea v-model="draft.colorDescription" maxlength="120" required/></label><div v-for="c in draft.criteria.filter(c=>c.key==='colorMatch'||(draft.kind==='fruit'?c.key==='fruitDiameter':c.key!=='fruitDiameter'))" :key="c.key" class="criterion-edit"><label class="checkbox"><input type="checkbox" v-model="c.enabled" :disabled="c.key==='colorMatch'"/>{{indicatorInfo[c.key].label}}</label><div class="rule-fields"><label>目标值（{{indicatorInfo[c.key].unit}}）<input type="number" v-model.number="c.target" min="0.01" :max="c.key==='colorMatch'?100:10000" step="0.01" :disabled="!c.enabled" required/></label><label>相对权重<input type="number" v-model.number="c.weight" min="0.01" max="100" step="0.01" :disabled="!c.enabled" required/></label></div></div><label>综合采收提醒分值<input type="number" v-model.number="draft.readyScore" min="1" max="100" step="0.1" required/></label><p class="trend-caption">每项达成度 = 检测值 ÷ 目标值，最高按 100% 计；按启用权重归一化后合成。必要指标缺测时不评分。切换作物类型会载入对应示例规则。</p><div class="crop-actions"><button class="primary" type="submit">{{saving?'正在保存…':'保存指标'}}</button><button class="secondary" type="button" @click="editing=false">取消</button></div></fieldset></form><p v-if="error" class="error-banner" role="alert">{{error}}</p><p v-if="message" class="success" role="status">{{message}}</p></section></template>

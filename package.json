@@ -1,0 +1,35 @@
+{
+  "name": "crop-monitoring-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n MOCK,WEB \"tsx watch mock/server.ts\" \"vite --host 127.0.0.1\"",
+    "dev:real": "vite --mode real --host 127.0.0.1",
+    "mock": "tsx mock/server.ts",
+    "typecheck": "vue-tsc --noEmit && tsc -p tsconfig.node.json",
+    "build": "vue-tsc --noEmit && tsc -p tsconfig.node.json && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0",
+    "pinia": "^3.0.0",
+    "axios": "^1.8.0",
+    "echarts": "^6.0.0",
+    "lucide-vue-next": "^0.468.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "typescript": "~5.9.0",
+    "vue-tsc": "^3.0.0",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "concurrently": "^9.0.0"
+  }
+}

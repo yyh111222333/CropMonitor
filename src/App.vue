@@ -1,0 +1,9 @@
+<script setup lang="ts">
+import {onMounted,ref} from 'vue'
+import {useRoute} from 'vue-router'
+import {Sprout,LayoutDashboard,Map,Leaf,ShoppingBasket,Settings,ChevronRight,RefreshCw,Menu,UserRound} from 'lucide-vue-next'
+import {useFarm} from './stores/farm'
+const farm=useFarm(),route=useRoute(),menu=ref(false)
+const nav=[{to:'/',name:'工作台',icon:LayoutDashboard},{to:'/crops',name:'作物档案',icon:Leaf},{to:'/ridges',name:'田垄地图',icon:Map},{to:'/management',name:'种植与采收',icon:ShoppingBasket},{to:'/settings',name:'参数设置',icon:Settings}]
+onMounted(farm.refresh)
+</script><template><div class="app-shell"><aside :class="{open:menu}"><RouterLink to="/" class="brand"><span class="brand-icon"><Sprout :size="28"/></span><div>农场管家<small>CROP MONITORING</small></div></RouterLink><span class="nav-label">工作空间</span><nav><RouterLink v-for="item in nav" :key="item.to" :to="item.to" @click="menu=false"><component :is="item.icon" :size="19"/>{{item.name}}<ChevronRight :size="14" class="nav-arrow"/></RouterLink></nav></aside><div class="workspace"><header><button class="icon-btn mobile-menu" aria-label="切换菜单" @click="menu=!menu"><Menu/></button><span class="breadcrumb">工作空间 <ChevronRight :size="14"/> <b>{{route.meta.title}}</b></span><div class="header-actions"><button class="secondary" :disabled="farm.loading" @click="farm.refresh"><RefreshCw :size="16" :class="{spin:farm.loading}"/>刷新数据</button><span class="header-right user-account"><span class="user-avatar" aria-hidden="true"><UserRound :size="22"/></span><span>admin</span></span></div></header><main><div v-if="farm.error" role="alert" class="error-banner">{{farm.error}} <button @click="farm.refresh">重新加载</button></div><div v-if="farm.loading&&!farm.dashboard" class="empty">正在连接数据服务…</div><RouterView v-else/><footer>农业作物生长监测与管理平台 <span>生长有据 · 管理有序</span></footer></main></div></div></template>

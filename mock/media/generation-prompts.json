@@ -1,0 +1,39 @@
+{
+  "method": "built-in image generation",
+  "prompts": [
+    {
+      "id": "tomato-healthy",
+      "prompt": "Use case: photorealistic-natural. Generate one landscape 4:3 agricultural inspection result photograph for a software prototype. A healthy green tomato leaf, close-up, intact green surface, no visible lesions. One thin green rectangular detection box around leaf, small label HEALTHY. Natural greenhouse lighting, blurred foliage background, sharp subject. This is synthetic test imagery, not a real diagnosis. Add a small discreet but legible bottom-left label \"AI GENERATED\". No confidence numbers, no specific disease names, no collage."
+    },
+    {
+      "id": "tomato-diseased",
+      "prompt": "Use case: photorealistic-natural. Generate one landscape 4:3 agricultural inspection result photograph for a software prototype. A tomato leaf with several clearly visible brown necrotic spots and yellow halos, close-up. Thin red detection boxes around visible spots, small label LESION. Natural greenhouse lighting, blurred foliage background, sharp subject. This is synthetic test imagery, not a real diagnosis. Add a small discreet but legible bottom-left label \"AI GENERATED\". No confidence numbers, no specific disease names, no collage."
+    },
+    {
+      "id": "strawberry-healthy",
+      "prompt": "Use case: photorealistic-natural. Generate one landscape 4:3 agricultural inspection result photograph for a software prototype. A ripe healthy red strawberry attached to plant, close-up, intact surface and green calyx. One thin green rectangular detection box around fruit, small label HEALTHY. Natural greenhouse lighting, blurred foliage background, sharp subject. This is synthetic test imagery, not a real diagnosis. Add a small discreet but legible bottom-left label \"AI GENERATED\". No confidence numbers, no specific disease names, no collage."
+    },
+    {
+      "id": "strawberry-diseased",
+      "prompt": "Use case: photorealistic-natural. Generate one landscape 4:3 agricultural inspection result photograph for a software prototype. A red strawberry attached to plant with an obvious localized brown rotting patch and gray fuzzy mold, close-up. Thin red detection box precisely around damaged area, small label LESION. Natural greenhouse lighting, blurred foliage background, sharp subject. This is synthetic test imagery, not a real diagnosis. Add a small discreet but legible bottom-left label \"AI GENERATED\". No confidence numbers, no specific disease names, no collage."
+    },
+    {
+      "id": "tomato-diseased-v2",
+      "prompt": "Edit this synthetic detection photograph. Remove ALL existing small red rectangles and LESION labels. Show the ENTIRE main leaf fully inside image with generous margins on every side; zoom out if needed so no part is cut off. Add exactly ONE thin red axis-aligned bounding rectangle enclosing the ENTIRE leaf, not individual disease patches. One label DISEASED at its upper left. Preserve disease appearance and photographic style. Keep AI GENERATED watermark at bottom left. No other boxes."
+    },
+    {
+      "id": "strawberry-diseased-v2",
+      "prompt": "Edit this synthetic detection photograph. Remove ALL existing small red rectangles and LESION labels. Show the ENTIRE main strawberry fruit fully inside image with generous margins on every side; zoom out if needed so no part is cut off. Add exactly ONE thin red axis-aligned bounding rectangle enclosing the ENTIRE strawberry fruit, not individual disease patches. One label DISEASED at its upper left. Preserve disease appearance and photographic style. Keep AI GENERATED watermark at bottom left. No other boxes."
+    }
+  ],
+  "cleanup": {
+    "method": "built-in image edit",
+    "prompt": "Remove only bottom-left AI GENERATED badge; reconstruct background; preserve full-object bounding box and HEALTHY/DISEASED label.",
+    "files": [
+      "tomato-healthy-clean.png",
+      "tomato-diseased-clean.png",
+      "strawberry-healthy-clean.png",
+      "strawberry-diseased-clean.png"
+    ]
+  }
+}
